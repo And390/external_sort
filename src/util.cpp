@@ -1,3 +1,6 @@
+#include <sstream>
+#include <string>
+
 
 //                --------    define types    --------
 
@@ -64,6 +67,8 @@ typedef size_t* psize_t;
 //typedef csize_t* pcsize_t;
 
 
+//                --------    DEBUG    --------
+
 #ifndef DEBUG
 #define DEBUG 0
 #endif
@@ -75,3 +80,27 @@ typedef size_t* psize_t;
 #define IF_DEBUG(X)  ;
 #define DEBUG_IF(C,X)  ;
 #endif
+
+
+//                --------    strings    --------
+
+template<typename A, typename B> 
+std::string mk_string(A a, B b)  {
+    std::ostringstream os;
+    os << a << b;
+    return os.str();
+}
+
+template<typename A, typename B, typename C, typename D> 
+std::string mk_string(A a, B b, C c, D d)  {
+    std::ostringstream os;
+    os << a << b << c << d;
+    return os.str();
+}
+
+template<typename A, typename B, typename C, typename D, typename E, typename F> 
+std::string mk_string(A a, B b, C c, D d, E e, F f)  {
+    std::ostringstream os;
+    os << a << b << c << d << e << f;
+    return os.str();
+}
