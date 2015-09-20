@@ -62,10 +62,6 @@ typedef void* pvoid;
 typedef const void* pcvoid;
 typedef const pvoid cpvoid;
 
-//typedef const size_t csize_t;
-typedef size_t* psize_t;
-//typedef csize_t* pcsize_t;
-
 
 //                --------    DEBUG    --------
 
@@ -84,23 +80,29 @@ typedef size_t* psize_t;
 
 //                --------    strings    --------
 
-template<typename A, typename B> 
-std::string mk_string(A a, B b)  {
-    std::ostringstream os;
-    os << a << b;
-    return os.str();
-}
+template<typename A>
+std::string mk_string(A a)  {  std::ostringstream os;  os << a;  return os.str();  }
 
-template<typename A, typename B, typename C, typename D> 
-std::string mk_string(A a, B b, C c, D d)  {
-    std::ostringstream os;
-    os << a << b << c << d;
-    return os.str();
-}
+template<typename A, typename B>
+std::string mk_string(A a, B b)  {  std::ostringstream os;  os << a << b;  return os.str();  }
 
-template<typename A, typename B, typename C, typename D, typename E, typename F> 
-std::string mk_string(A a, B b, C c, D d, E e, F f)  {
-    std::ostringstream os;
-    os << a << b << c << d << e << f;
-    return os.str();
-}
+template<typename A, typename B, typename C>
+std::string mk_string(A a, B b, C c)  {  std::ostringstream os;  os << a << b << c;  return os.str();  }
+
+template<typename A, typename B, typename C, typename D>
+std::string mk_string(A a, B b, C c, D d)  {  std::ostringstream os;  os << a << b << c << d;  return os.str();  }
+
+template<typename A, typename B, typename C, typename D, typename E>
+std::string mk_string(A a, B b, C c, D d, E e)  {  std::ostringstream os;  os << a << b << c << d << e;  return os.str();  }
+
+template<typename A, typename B, typename C, typename D, typename E, typename F>
+std::string mk_string(A a, B b, C c, D d, E e, F f)  {  std::ostringstream os;  os << a << b << c << d << e << f;  return os.str();  }
+
+template<typename A, typename B, typename C, typename D, typename E, typename F, typename G>
+std::string mk_string(A a, B b, C c, D d, E e, F f, G g)  {  std::ostringstream os;  os << a << b << c << d << e << f << g;  return os.str();  }
+
+template<typename A, typename B, typename C, typename D, typename E, typename F, typename G, typename H>
+std::string mk_string(A a, B b, C c, D d, E e, F f, G g, H h)  {  std::ostringstream os;  os << a << b << c << d << e << f << g << h;  return os.str();  }
+
+template<typename A, typename B, typename C, typename D, typename E, typename F, typename G, typename H, typename I>
+std::string mk_string(A a, B b, C c, D d, E e, F f, G g, H h, I i)  {  std::ostringstream os;  os << a << b << c << d << e << f << g << h << i;  return os.str();  }

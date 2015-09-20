@@ -5,6 +5,7 @@
 
 using namespace std;
 using namespace extsort;
+using namespace extsort::internal;
 
 
 template<typename A, typename B>  void assert_e(A a, B b, pcchar msg1, pcchar msg2)
@@ -31,7 +32,6 @@ struct context
     uint size;  //average size
     uint count;  //remaning count
     uint hash = 0;
-    //context() : count(0)  {}
     context(uint size_, uint count_) : size(size_), count(count_)  {}
 };
 typedef context* pcontext;
@@ -48,7 +48,7 @@ pvoid produce_uptobuffer (pvoid data, size_t capacity, pvoid ctx)  {
         hash += *(p++) = 'a'+rand('z'-'a'+1);
         capacity--;
     }
-    *(p++) = '\0';
+    *(p++) = '\n';
     pcontext(ctx)->hash += hash;
     return p;
 }
@@ -63,7 +63,7 @@ pvoid produce (pvoid data, size_t capacity, pvoid ctx)  {
         hash += *(p++) = 'a'+rand('z'-'a'+1);
         capacity--;
     }
-    *(p++) = '\0';
+    *(p++) = '\n';
     pcontext(ctx)->count--;
     pcontext(ctx)->hash += hash;
     return p;
@@ -75,18 +75,18 @@ bool compare (pvoid p1, pvoid p2) {
     return strcmp(s1,s2)<0;
 }
 
-size_t get_size(pvoid pbeg, pvoid pend, pvoid ctx)  {
-    for (pchar p=pchar(pbeg); p!=pend; p++)  if (*p=='\0')  return p+1-pchar(pbeg);
+size_t get_size(pvoid pbeg, size_t capacity, pvoid ctx)  {
+    for (pchar p=pchar(pbeg); p!=pchar(pbeg)+capacity; p++)  if (*p=='\n')  return p+1-pchar(pbeg);
     return 0;
 }
 
-pcchar TEST_FILENAME = "test_file";
+pcchar TEST_FILENAME = "test.data";
 
-bool test(pcontext ctx)
+void test(pcontext ctx)
 {
     //    read file
     ifstream file(TEST_FILENAME, ios::binary);
-    if (!file)  {  cerr << "error opening file: " << TEST_FILENAME << endl;  return false;  }
+    if (!file)  throw mk_string("error opening file: ", TEST_FILENAME);
     file.seekg(0, ios::end);
     streamsize size = file.tellg();
     cout << "total " << size << " bytes\n";
@@ -94,28 +94,19 @@ bool test(pcontext ctx)
     pbyte buffer = new byte [size];
     file.read((pchar)buffer, size);
     file.close();
-    //    check sorted and hash
-    bool result = true;
+    //    check order and hash
     uint hash=0;
     for (pbyte p1=buffer;;)  {
         for (pbyte pb=p1; *pb!=0; pb++)  hash+=*pb;
         pbyte p2 = p1 + strlen(pcchar(p1)) + 1;
         if (p2 == buffer+size)  break;
-        if (compare(p2,p1))  {
-            cerr << "wrong order:\n" << pcchar(p1) << "\n" << pcchar(p2) << "\n";
-            result = false;
-            break;
-        }
+        if (compare(p2,p1))  throw mk_string("wrong order:\n", pcchar(p1), "\n", pcchar(p2));
         p1 = p2;
     }
-    if (hash!=ctx->hash)  {
-        cerr << "hash is not match\n";
-        result = false;
-    }
+    if (hash!=ctx->hash)  throw mk_string("hash is not match");
     //    clear and exit
     delete [] buffer;
     remove(TEST_FILENAME);
-    return result;
 }
 
 void test_mod_sub()
@@ -130,17 +121,17 @@ void test_mod_sub()
 
 int main(int args, pcchar* argv)
 {
-    if (DEBUG)  cout << "DEBUG" << endl;
-    bool success;
+    cout << (DEBUG ? "DEBUG ON" : "DEBUG OFF") << endl;
     try  {
         test_mod_sub();
 
+        // generate strings, call sort, and check
         context ctx(100, 100*1000);
         string TEMP_FILENAME = string(TEST_FILENAME)+"_temp";
         sort(TEST_FILENAME, TEMP_FILENAME.c_str(), 1000*1000, produce, get_size, compare, &ctx);
-        success = test(&ctx);
+        test(&ctx);
     }
-    catch (string e)  {  cerr << e << endl;  success=false;  }
-    cout << (success ? "success" : "fail") << endl;
-    return success ? 0 : -1;
+    catch (string e)  {  cerr << e << endl;  return -1;  }
+    cout << "success" << endl;
+    return 0;
 }
