@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cstdio>
-#include <string.h>
 #include "../src/extsort.cpp"
 
 using namespace std;
@@ -43,12 +42,13 @@ pvoid produce_uptobuffer (pvoid data, size_t capacity, pvoid ctx)  {
     uint hash = 0;
     pbyte p = (pbyte)data;
     for (;;)  {
-        if (capacity==0)  return END_OF_DATA;
+        if (capacity<2)  return END_OF_DATA;
         if (rand()%100==0)  break;
         hash += *(p++) = 'a'+rand('z'-'a'+1);
         capacity--;
     }
     *(p++) = '\n';
+    *(p++) = '\0';
     pcontext(ctx)->hash += hash;
     return p;
 }
@@ -58,12 +58,13 @@ pvoid produce (pvoid data, size_t capacity, pvoid ctx)  {
     uint hash = 0;
     pbyte p = (pbyte)data;
     for (;;)  {
-        if (capacity==0)  return END_OF_BUFF;
+        if (capacity<2)  return END_OF_BUFF;
         if (rand()%100==0)  break;
         hash += *(p++) = 'a'+rand('z'-'a'+1);
         capacity--;
     }
     *(p++) = '\n';
+    *(p++) = '\0';
     pcontext(ctx)->count--;
     pcontext(ctx)->hash += hash;
     return p;
@@ -76,7 +77,7 @@ bool compare (pvoid p1, pvoid p2) {
 }
 
 size_t get_size(pvoid pbeg, size_t capacity, pvoid ctx)  {
-    for (pchar p=pchar(pbeg); p!=pchar(pbeg)+capacity; p++)  if (*p=='\n')  return p+1-pchar(pbeg);
+    for (pchar p=pchar(pbeg); p!=pchar(pbeg)+capacity; p++)  if (*p=='\0')  return p+1-pchar(pbeg);
     return 0;
 }
 
@@ -97,10 +98,10 @@ void test(pcontext ctx)
     //    check order and hash
     uint hash=0;
     for (pbyte p1=buffer;;)  {
-        for (pbyte pb=p1; *pb!=0; pb++)  hash+=*pb;
+        for (pbyte pb=p1; *pb!='\n'; pb++)  hash+=*pb;
         pbyte p2 = p1 + strlen(pcchar(p1)) + 1;
         if (p2 == buffer+size)  break;
-        if (compare(p2,p1))  throw mk_string("wrong order:\n", pcchar(p1), "\n", pcchar(p2));
+        if (compare(p2,p1))  throw mk_string("wrong order:\n", pcchar(p1), pcchar(p2));
         p1 = p2;
     }
     if (hash!=ctx->hash)  throw mk_string("hash is not match");
@@ -125,11 +126,18 @@ int main(int args, pcchar* argv)
     try  {
         test_mod_sub();
 
-        // generate strings, call sort, and check
-        context ctx(100, 100*1000);
         string TEMP_FILENAME = string(TEST_FILENAME)+"_temp";
+        
+        // generate strings, call sort, and check
+        // firstly for one buffer
+        context ctx(100, 100*1000);
+        sort(TEST_FILENAME, TEMP_FILENAME.c_str(), 1000*1000, produce_uptobuffer, get_size, compare, &ctx);
+        test(&ctx);
+        
+        ctx.hash = 0;
         sort(TEST_FILENAME, TEMP_FILENAME.c_str(), 1000*1000, produce, get_size, compare, &ctx);
         test(&ctx);
+        
     }
     catch (string e)  {  cerr << e << endl;  return -1;  }
     cout << "success" << endl;

@@ -1,7 +1,7 @@
 #!/bin/sh
 usage ()
 {
-  echo "you must specify target to compile (for example 'src/main') and optional arguments to gcc"
+  echo "you must specify target file to compile without extension (for example 'src/main') and optional arguments to gcc"
   exit
 }
 [ -n "$1" ] || usage
