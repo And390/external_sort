@@ -13,7 +13,7 @@ namespace extsort  {
 
 
 // function that writes next item data info buffer with available capacity
-// returns pointer to end of written data (so: size = return - 'data')
+// returns pointer to the end of written data (so: size = return - 'data')
 // if capacity is not enough then it must return END_OF_BUFF
 // if no more items to produce then it must return END_OF_BUFF
 typedef pvoid (*f_produce) (pvoid data, size_t capacity, pvoid context);
@@ -21,7 +21,7 @@ typedef pvoid (*f_produce) (pvoid data, size_t capacity, pvoid context);
 cpvoid END_OF_DATA = NULL;
 cpvoid END_OF_BUFF = pbyte(END_OF_DATA)+1;
 
-// return a size of the item data; data stored up to the capacity and item can be not loaded fully
+// return size of the item data; data is stored upto the capacity and item can be not loaded fully
 // so, if function can't calculate size because capacity is not enough then it must return 0
 typedef size_t (*f_get_size) (pvoid data, size_t capacity, pvoid context);
 
@@ -40,7 +40,7 @@ const size_t BLOCK_SIZE = 8192;
 
 
 namespace internal  {
-    // do not work for a=0
+    // doesn't work for a=0
     template<class T>  T align(T a, T b)  {  return a + b - ((a-1)%b+1);  }
     template<class T>  T floor(T a, T b)  {  return a - a%b;  }
 }
@@ -62,8 +62,8 @@ class Sorter
     size_t part_buff_size;
     size_t part_read_size;
     
-    pbyte pdata;  // в начало буфера записываются данные элементов (указатель на конец этих данных)
-    pbyte paddr;  // в конец - указатели на них
+    pbyte pdata;  // items data will be written in the start of the buffer (pdata is a end pointer of that in the buffer)
+    pbyte paddr;  // the end of the buffer will contain pointers to that data (paddr is a start pointer of that in the buffer)
     
   public:
     Sorter(pcchar filename_, pcchar temp_filename_, size_t buff_size_, 
@@ -77,7 +77,7 @@ class Sorter
         paddr = pdata + buff_size;
     }
     
-    //    step 1. Make sorted parts of BUFF_SIZE and write it to file
+    //    step 1. Make sorted parts of BUFF_SIZE and write it to the file
         
     pvoid data()  {  return pdata;  }
     size_t capacity()  {  return size_t(paddr-pdata)>sizeof(pvoid) ? paddr-pdata-sizeof(pvoid) : 0;  }
@@ -142,9 +142,9 @@ class Sorter
                                                   " (", parts_count, " parts, each must be > ", BLOCK_SIZE, " bytes)");
         if (max_item_size > part_read_size)  throw mk_string("item is too large and can't fit in the buffer: ",
                                                              max_item_size, " > ", part_read_size);
-        // также есть риск, что окажется не достаточно буфера, если part_buff_size - (max_item_size-1) < BLOCK_SIZE,
-        // т.е. в буфере останется хвост такой, что не хватит места, чтобы прочитать ни один блок с диска
-        // (это проверяется дальше)
+        // Also there is a risk that buffer is not enough if part_buff_size - (max_item_size-1) < BLOCK_SIZE,
+        // i.e. in the buffer it will remain a tail such big that space will be not enough to read anyone block from disk
+        // (this situation checks later)
     }
   public:
     void flush()  {  flush(false);  }
